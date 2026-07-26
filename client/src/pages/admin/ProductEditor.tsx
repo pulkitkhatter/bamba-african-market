@@ -41,6 +41,11 @@ export function ProductEditor({ product, categoryNames, onChanged, onDeleted }: 
     onChanged();
   }
 
+  async function handleTogglePublished() {
+    await api.updateProduct(product.id, { published: !product.published });
+    onChanged();
+  }
+
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -105,6 +110,11 @@ export function ProductEditor({ product, categoryNames, onChanged, onDeleted }: 
           <label className="checkbox-label">
             <input type="checkbox" checked={product.inStock} onChange={handleToggleStock} />
             In Stock
+          </label>
+
+          <label className="checkbox-label">
+            <input type="checkbox" checked={product.published} onChange={handleTogglePublished} />
+            Published
           </label>
 
           <button

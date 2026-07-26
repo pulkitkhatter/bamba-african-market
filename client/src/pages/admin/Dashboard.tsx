@@ -7,6 +7,9 @@ import { OrdersPanel } from "./OrdersPanel";
 import { ProductEditor } from "./ProductEditor";
 
 type Tab = "products" | "categories" | "orders" | "settings";
+type ProductFilter = "published" | "drafts" | "all";
+
+const DRAFTS_PAGE_SIZE = 30;
 
 const emptyCategory = {
   name: "",
@@ -27,6 +30,8 @@ export function AdminDashboard() {
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>("products");
+  const [productFilter, setProductFilter] = useState<ProductFilter>("published");
+  const [draftsShown, setDraftsShown] = useState(DRAFTS_PAGE_SIZE);
 
   function loadData() {
     api.getCategories().then((data) => {
@@ -133,18 +138,66 @@ export function AdminDashboard() {
           <p className="admin-hint">
             Edit name/price/description inline (saves when you click away),
             change category, upload a photo, toggle in-stock, or delete.
+            Unpublished products are hidden from the public site until you
+            check "Published".
           </p>
 
+          <div className="admin-tabs">
+            <button
+              type="button"
+              className={`admin-tab ${productFilter === "published" ? "admin-tab-active" : ""}`}
+              onClick={() => setProductFilter("published")}
+            >
+              Published ({products.filter((p) => p.published).length})
+            </button>
+            <button
+              type="button"
+              className={`admin-tab ${productFilter === "drafts" ? "admin-tab-active" : ""}`}
+              onClick={() => setProductFilter("drafts")}
+            >
+              Drafts ({products.filter((p) => !p.published).length})
+            </button>
+            <button
+              type="button"
+              className={`admin-tab ${productFilter === "all" ? "admin-tab-active" : ""}`}
+              onClick={() => setProductFilter("all")}
+            >
+              All ({products.length})
+            </button>
+          </div>
+
           <div className="menu-item-editor-list">
-            {products.map((product) => (
-              <ProductEditor
-                key={product.id}
-                product={product}
-                categoryNames={categories.map((c) => c.name)}
-                onChanged={loadData}
-                onDeleted={loadData}
-              />
-            ))}
+            {(() => {
+              const filtered = products.filter((p) => {
+                if (productFilter === "published") return p.published;
+                if (productFilter === "drafts") return !p.published;
+                return true;
+              });
+              const visible =
+                productFilter === "drafts" ? filtered.slice(0, draftsShown) : filtered;
+              return (
+                <>
+                  {visible.map((product) => (
+                    <ProductEditor
+                      key={product.id}
+                      product={product}
+                      categoryNames={categories.map((c) => c.name)}
+                      onChanged={loadData}
+                      onDeleted={loadData}
+                    />
+                  ))}
+                  {productFilter === "drafts" && filtered.length > visible.length && (
+                    <button
+                      type="button"
+                      className="btn btn-outline btn-small"
+                      onClick={() => setDraftsShown((n) => n + DRAFTS_PAGE_SIZE)}
+                    >
+                      Load more ({filtered.length - visible.length} remaining)
+                    </button>
+                  )}
+                </>
+              );
+            })()}
           </div>
 
           <form onSubmit={handleAddProduct} className="admin-inline-form">

@@ -58,6 +58,7 @@ model MarketProduct {
   price       Float
   photoUrl    String?
   inStock     Boolean  @default(true)
+  published   Boolean  @default(true)
   sortOrder   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

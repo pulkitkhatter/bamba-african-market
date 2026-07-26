@@ -33,6 +33,7 @@ export interface MarketProduct {
   price: number;
   photoUrl: string | null;
   inStock: boolean;
+  published: boolean;
   sortOrder: number;
 }
 
@@ -43,6 +44,7 @@ export interface NewProductInput {
   price: number;
   photoUrl?: string;
   inStock?: boolean;
+  published?: boolean;
   sortOrder?: number;
 }
 

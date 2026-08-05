@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { ProductCard } from "../components/ProductCard";
 import { WhatsAppButton } from "../components/WhatsAppButton";
 import { api, type MarketCategory, type MarketProduct } from "../lib/api";
@@ -18,10 +19,17 @@ function categoryAnchor(name: string): string {
   return `aisle-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
 }
 
+function matchesSearch(product: MarketProduct, term: string): boolean {
+  const haystack = `${product.name} ${product.category} ${product.description ?? ""}`.toLowerCase();
+  return haystack.includes(term);
+}
+
 export function WhatWeCarry() {
   const [categories, setCategories] = useState<MarketCategory[]>([]);
   const [products, setProducts] = useState<MarketProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchParams] = useSearchParams();
+  const searchTerm = searchParams.get("search")?.trim() ?? "";
 
   useEffect(() => {
     Promise.all([api.getCategories(), api.getProducts()])
@@ -36,7 +44,10 @@ export function WhatWeCarry() {
       .finally(() => setLoading(false));
   }, []);
 
-  const grouped = groupByCategory(products);
+  const visibleProducts = searchTerm
+    ? products.filter((product) => matchesSearch(product, searchTerm.toLowerCase()))
+    : products;
+  const grouped = groupByCategory(visibleProducts);
 
   return (
     <div className="container section">
@@ -56,11 +67,26 @@ export function WhatWeCarry() {
 
       {loading && <p>Loading…</p>}
 
+      {!loading && searchTerm && (
+        <p className="search-results-summary">
+          {visibleProducts.length > 0
+            ? `${visibleProducts.length} result${visibleProducts.length === 1 ? "" : "s"} for “${searchTerm}”`
+            : `No products found for “${searchTerm}”.`}{" "}
+          <Link to="/what-we-carry">Clear search</Link>
+        </p>
+      )}
+
       {!loading && products.length === 0 && (
         <p>Our selection is being updated — check back shortly, or ask us on WhatsApp.</p>
       )}
 
-      {products.length > 0 && (
+      {!loading && products.length > 0 && searchTerm && visibleProducts.length === 0 && (
+        <p>
+          Don&apos;t see it? Ask us on WhatsApp — we may still carry it.
+        </p>
+      )}
+
+      {visibleProducts.length > 0 && (
         <nav className="aisle-nav" aria-label="Jump to category">
           {categories
             .filter((category) => (grouped.get(category.name)?.length ?? 0) > 0)

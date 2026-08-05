@@ -1,9 +1,23 @@
-import { NavLink } from "react-router-dom";
+import { type FormEvent, useEffect, useState } from "react";
+import { NavLink, useNavigate, useSearchParams } from "react-router-dom";
 import { useCart } from "../context/CartContext";
 import { BUSINESS } from "../lib/content";
 
 export function Header() {
   const { totalItems } = useCart();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [searchTerm, setSearchTerm] = useState(searchParams.get("search") ?? "");
+
+  useEffect(() => {
+    setSearchTerm(searchParams.get("search") ?? "");
+  }, [searchParams]);
+
+  function handleSearchSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const trimmed = searchTerm.trim();
+    navigate(trimmed ? `/what-we-carry?search=${encodeURIComponent(trimmed)}` : "/what-we-carry");
+  }
 
   return (
     <header className="site-header">
@@ -20,6 +34,19 @@ export function Header() {
           </span>
           <span className="brand-name">Bamba African Market</span>
         </NavLink>
+        <form className="header-search" role="search" onSubmit={handleSearchSubmit}>
+          <input
+            type="search"
+            name="search"
+            placeholder="Search products…"
+            aria-label="Search products"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+          <button type="submit" aria-label="Search">
+            Search
+          </button>
+        </form>
         <nav className="main-nav">
           <NavLink to="/" end>
             Home

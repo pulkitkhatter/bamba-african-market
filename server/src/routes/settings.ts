@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { stripUndefined } from "../lib/stripUndefined.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -27,7 +27,7 @@ router.get("/", async (_req, res, next) => {
   }
 });
 
-router.put("/", requireAuth, async (req, res, next) => {
+router.put("/", requireAdmin, async (req, res, next) => {
   try {
     const data = stripUndefined(settingsSchema.parse(req.body));
     const settings = await prisma.marketSettings.upsert({

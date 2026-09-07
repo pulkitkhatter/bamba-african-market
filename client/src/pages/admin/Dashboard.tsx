@@ -5,8 +5,9 @@ import { api, type MarketCategory, type MarketProduct, type MarketSettings } fro
 import { CategoryEditor } from "./CategoryEditor";
 import { OrdersPanel } from "./OrdersPanel";
 import { ProductEditor } from "./ProductEditor";
+import { StaffPanel } from "./StaffPanel";
 
-type Tab = "products" | "categories" | "orders" | "settings";
+type Tab = "products" | "categories" | "orders" | "settings" | "staff";
 type ProductFilter = "published" | "drafts" | "all";
 
 const DRAFTS_PAGE_SIZE = 30;
@@ -19,8 +20,9 @@ const emptyCategory = {
 };
 
 export function AdminDashboard() {
-  const { email, logout } = useAuth();
+  const { email, role, logout } = useAuth();
   const navigate = useNavigate();
+  const isAdmin = role === "ADMIN";
 
   const [categories, setCategories] = useState<MarketCategory[]>([]);
   const [products, setProducts] = useState<MarketProduct[]>([]);
@@ -42,7 +44,9 @@ export function AdminDashboard() {
     api.getSettings().then(setSettings);
   }
 
-  useEffect(loadData, []);
+  useEffect(() => {
+    if (isAdmin) loadData();
+  }, [isAdmin]);
 
   async function handleLogout() {
     await logout();
@@ -101,38 +105,61 @@ export function AdminDashboard() {
         </div>
       </div>
 
-      <div className="admin-tabs">
-        <button
-          type="button"
-          className={`admin-tab ${tab === "products" ? "admin-tab-active" : ""}`}
-          onClick={() => setTab("products")}
-        >
-          Products
-        </button>
-        <button
-          type="button"
-          className={`admin-tab ${tab === "categories" ? "admin-tab-active" : ""}`}
-          onClick={() => setTab("categories")}
-        >
-          Categories
-        </button>
-        <button
-          type="button"
-          className={`admin-tab ${tab === "orders" ? "admin-tab-active" : ""}`}
-          onClick={() => setTab("orders")}
-        >
-          Orders
-        </button>
-        <button
-          type="button"
-          className={`admin-tab ${tab === "settings" ? "admin-tab-active" : ""}`}
-          onClick={() => setTab("settings")}
-        >
-          Site Settings
-        </button>
-      </div>
+      {isAdmin && (
+        <div className="admin-tabs">
+          <button
+            type="button"
+            className={`admin-tab ${tab === "products" ? "admin-tab-active" : ""}`}
+            onClick={() => setTab("products")}
+          >
+            Products
+          </button>
+          <button
+            type="button"
+            className={`admin-tab ${tab === "categories" ? "admin-tab-active" : ""}`}
+            onClick={() => setTab("categories")}
+          >
+            Categories
+          </button>
+          <button
+            type="button"
+            className={`admin-tab ${tab === "orders" ? "admin-tab-active" : ""}`}
+            onClick={() => setTab("orders")}
+          >
+            Orders
+          </button>
+          <button
+            type="button"
+            className={`admin-tab ${tab === "settings" ? "admin-tab-active" : ""}`}
+            onClick={() => setTab("settings")}
+          >
+            Site Settings
+          </button>
+          <button
+            type="button"
+            className={`admin-tab ${tab === "staff" ? "admin-tab-active" : ""}`}
+            onClick={() => setTab("staff")}
+          >
+            Staff
+          </button>
+        </div>
+      )}
 
-      {tab === "products" && (
+      {(!isAdmin || tab === "orders") && (
+        <section>
+          <h2>Orders</h2>
+          <OrdersPanel canDelete={isAdmin} />
+        </section>
+      )}
+
+      {isAdmin && tab === "staff" && (
+        <section>
+          <h2>Staff</h2>
+          <StaffPanel />
+        </section>
+      )}
+
+      {isAdmin && tab === "products" && (
         <section>
           <h2>Products</h2>
           <p className="admin-hint">
@@ -230,14 +257,7 @@ export function AdminDashboard() {
         </section>
       )}
 
-      {tab === "orders" && (
-        <section>
-          <h2>Orders</h2>
-          <OrdersPanel />
-        </section>
-      )}
-
-      {tab === "categories" && (
+      {isAdmin && tab === "categories" && (
         <section>
           <h2>Categories</h2>
           <p className="admin-hint">
@@ -276,7 +296,7 @@ export function AdminDashboard() {
         </section>
       )}
 
-      {tab === "settings" && settings && (
+      {isAdmin && tab === "settings" && settings && (
         <section>
           <h2>Site Settings</h2>
           <form onSubmit={handleSaveSettings} className="admin-settings-form">

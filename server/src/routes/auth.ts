@@ -40,7 +40,7 @@ router.post("/login", async (req, res, next) => {
       return;
     }
 
-    const token = jwt.sign({ adminId: admin.id }, JWT_SECRET, {
+    const token = jwt.sign({ adminId: admin.id, role: admin.role }, JWT_SECRET, {
       expiresIn: "7d",
     });
 
@@ -49,7 +49,7 @@ router.post("/login", async (req, res, next) => {
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
 
-    res.json({ email: admin.email });
+    res.json({ email: admin.email, role: admin.role });
   } catch (err) {
     next(err);
   }
@@ -73,7 +73,7 @@ router.get("/me", requireAuth, async (req, res, next) => {
       res.status(401).json({ error: "Not authenticated" });
       return;
     }
-    res.json({ email: admin.email });
+    res.json({ email: admin.email, role: admin.role });
   } catch (err) {
     next(err);
   }

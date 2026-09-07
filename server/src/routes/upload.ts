@@ -1,7 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { uploadImage } from "../lib/supabaseStorage.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -21,7 +21,7 @@ const upload = multer({
 
 router.post(
   "/",
-  requireAuth,
+  requireAdmin,
   upload.single("image"),
   async (req, res, next) => {
     try {

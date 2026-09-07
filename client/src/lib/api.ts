@@ -85,6 +85,25 @@ export interface MarketOrder {
   updatedAt: string;
 }
 
+export type AdminRole = "ADMIN" | "EMPLOYEE";
+
+export interface AuthUser {
+  email: string;
+  role: AdminRole;
+}
+
+export interface StaffMember {
+  id: string;
+  email: string;
+  role: AdminRole;
+  createdAt: string;
+}
+
+export interface NewStaffInput {
+  email: string;
+  password: string;
+}
+
 async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(`${API_URL}${path}`, {
     credentials: "include",
@@ -138,12 +157,17 @@ export const api = {
   deleteOrder: (id: string) => request<void>(`/api/orders/${id}`, { method: "DELETE" }),
 
   login: (email: string, password: string) =>
-    request<{ email: string }>("/api/auth/login", {
+    request<AuthUser>("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ email, password }),
     }),
   logout: () => request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
-  me: () => request<{ email: string }>("/api/auth/me"),
+  me: () => request<AuthUser>("/api/auth/me"),
+
+  getStaff: () => request<StaffMember[]>("/api/staff"),
+  createStaff: (data: NewStaffInput) =>
+    request<StaffMember>("/api/staff", { method: "POST", body: JSON.stringify(data) }),
+  deleteStaff: (id: string) => request<void>(`/api/staff/${id}`, { method: "DELETE" }),
 
   uploadImage: async (file: File): Promise<{ url: string }> => {
     const formData = new FormData();

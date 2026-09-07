@@ -19,11 +19,19 @@ datasource db {
 // WHOLE database against this schema file and would try to drop the
 // restaurant's tables since they aren't declared here.
 
+// Named distinctly from the restaurant project's "AdminRole" enum, which
+// already exists as a Postgres type in this shared database.
+enum MarketAdminRole {
+  ADMIN
+  EMPLOYEE
+}
+
 model MarketAdmin {
-  id           String   @id @default(uuid())
-  email        String   @unique
+  id           String          @id @default(uuid())
+  email        String          @unique
   passwordHash String
-  createdAt    DateTime @default(now())
+  role         MarketAdminRole @default(ADMIN)
+  createdAt    DateTime        @default(now())
 }
 
 model MarketSettings {

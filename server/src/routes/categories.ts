@@ -2,7 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../lib/prisma.js";
 import { stripUndefined } from "../lib/stripUndefined.js";
-import { requireAuth } from "../middleware/auth.js";
+import { requireAdmin } from "../middleware/auth.js";
 
 const router = Router();
 
@@ -25,7 +25,7 @@ router.get("/", async (_req, res, next) => {
   }
 });
 
-router.post("/", requireAuth, async (req, res, next) => {
+router.post("/", requireAdmin, async (req, res, next) => {
   try {
     const data = stripUndefined(categorySchema.parse(req.body));
     const category = await prisma.marketCategory.create({ data });
@@ -35,7 +35,7 @@ router.post("/", requireAuth, async (req, res, next) => {
   }
 });
 
-router.put("/:id", requireAuth, async (req, res, next) => {
+router.put("/:id", requireAdmin, async (req, res, next) => {
   try {
     const id = req.params["id"];
     if (!id || typeof id !== "string") {
@@ -50,7 +50,7 @@ router.put("/:id", requireAuth, async (req, res, next) => {
   }
 });
 
-router.delete("/:id", requireAuth, async (req, res, next) => {
+router.delete("/:id", requireAdmin, async (req, res, next) => {
   try {
     const id = req.params["id"];
     if (!id || typeof id !== "string") {

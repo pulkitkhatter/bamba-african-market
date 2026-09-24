@@ -1,4 +1,5 @@
 import { createClient } from "@supabase/supabase-js";
+import sharp from "sharp";
 import WebSocket from "ws";
 
 const supabaseUrl = process.env["SUPABASE_URL"];
@@ -15,6 +16,25 @@ export const supabaseAdmin =
     : null;
 
 const BUCKET = "bamba-market-images";
+
+// Every upload gets downscaled and re-encoded as WebP before it ever
+// reaches Supabase Storage, so product/category photos don't quietly
+// balloon storage (and page-load) costs at full camera resolution.
+const MAX_DIMENSION = 1600;
+const WEBP_QUALITY = 80;
+
+export async function compressImage(buffer: Buffer): Promise<Buffer> {
+  return sharp(buffer)
+    .rotate() // bake in EXIF orientation before the metadata is stripped
+    .resize({
+      width: MAX_DIMENSION,
+      height: MAX_DIMENSION,
+      fit: "inside",
+      withoutEnlargement: true,
+    })
+    .webp({ quality: WEBP_QUALITY })
+    .toBuffer();
+}
 
 // Bamba African Market shares its Supabase project with Z Halal Restaurant
 // (same owner, one project) but uses its own storage bucket so uploads for
@@ -42,12 +62,12 @@ export async function uploadImage(file: Express.Multer.File): Promise<string> {
     );
   }
 
-  const ext = file.originalname.split(".").pop() ?? "jpg";
-  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+  const compressed = await compressImage(file.buffer);
+  const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.webp`;
 
   const { error } = await supabaseAdmin.storage
     .from(BUCKET)
-    .upload(path, file.buffer, { contentType: file.mimetype });
+    .upload(path, compressed, { contentType: "image/webp" });
 
   if (error) {
     throw new Error(`Image upload failed: ${error.message}`);

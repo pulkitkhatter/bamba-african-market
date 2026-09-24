@@ -15,7 +15,8 @@
     "compress-images-force": "tsx src/scripts/compress_existing_images.ts --force",
     "backup-images": "tsx src/scripts/download_bucket_backup.ts",
     "find-orphan-images": "tsx src/scripts/find_orphan_images.ts",
-    "delete-orphan-images": "tsx src/scripts/find_orphan_images.ts --delete"
+    "delete-orphan-images": "tsx src/scripts/find_orphan_images.ts --delete",
+    "repair-photo-urls": "tsx src/scripts/repair_photo_urls.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.0",

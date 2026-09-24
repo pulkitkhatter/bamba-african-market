@@ -12,7 +12,10 @@
     "prisma:push": "prisma db push",
     "seed": "tsx src/scripts/seed.ts",
     "compress-images": "tsx src/scripts/compress_existing_images.ts",
-    "backup-images": "tsx src/scripts/download_bucket_backup.ts"
+    "compress-images-force": "tsx src/scripts/compress_existing_images.ts --force",
+    "backup-images": "tsx src/scripts/download_bucket_backup.ts",
+    "find-orphan-images": "tsx src/scripts/find_orphan_images.ts",
+    "delete-orphan-images": "tsx src/scripts/find_orphan_images.ts --delete"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.9.0",

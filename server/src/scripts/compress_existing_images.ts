@@ -5,11 +5,17 @@ import { compressImage, supabaseAdmin } from "../lib/supabaseStorage.js";
 // One-off backfill: re-encodes every image already sitting in the
 // bamba-market-images bucket (uploaded before uploadImage() compressed on
 // the way in) to WebP, then repoints any DB row still pointing at the old
-// URL. Safe to re-run -- already-WebP objects are skipped.
+// URL. Safe to re-run -- already-WebP objects are skipped by default.
 //
-// Usage: npx tsx src/scripts/compress_existing_images.ts
+// Pass --force to also re-run already-WebP objects through the *current*
+// compressImage() settings (e.g. after tightening MAX_DIMENSION/
+// WEBP_QUALITY in supabaseStorage.ts) -- useful for squeezing further once
+// a first pass already converted everything.
+//
+// Usage: npx tsx src/scripts/compress_existing_images.ts [--force]
 
 const BUCKET = "bamba-market-images";
+const FORCE = process.argv.includes("--force");
 
 async function listAllObjectNames(): Promise<string[]> {
   if (!supabaseAdmin) throw new Error("Supabase storage is not configured");
@@ -46,7 +52,7 @@ async function main() {
   }
 
   const objectNames = await listAllObjectNames();
-  console.log(`Found ${objectNames.length} object(s) in ${BUCKET}`);
+  console.log(`Found ${objectNames.length} object(s) in ${BUCKET}${FORCE ? " (force mode: re-checking WebP files too)" : ""}`);
 
   let totalBefore = 0;
   let totalAfter = 0;
@@ -57,7 +63,7 @@ async function main() {
 
   for (const name of objectNames) {
     try {
-      if (name.toLowerCase().endsWith(".webp")) {
+      if (name.toLowerCase().endsWith(".webp") && !FORCE) {
         skipped++;
         continue;
       }

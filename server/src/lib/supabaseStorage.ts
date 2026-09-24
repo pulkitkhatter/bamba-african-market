@@ -20,8 +20,10 @@ const BUCKET = "bamba-market-images";
 // Every upload gets downscaled and re-encoded as WebP before it ever
 // reaches Supabase Storage, so product/category photos don't quietly
 // balloon storage (and page-load) costs at full camera resolution.
-const MAX_DIMENSION = 1600;
-const WEBP_QUALITY = 80;
+// Tuned tight -- these are grid thumbnails, not full-bleed prints, and
+// storage footprint matters more here than for a typical photo site.
+const MAX_DIMENSION = 1000;
+const WEBP_QUALITY = 65;
 
 export async function compressImage(buffer: Buffer): Promise<Buffer> {
   return sharp(buffer)

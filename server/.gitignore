@@ -5,3 +5,4 @@ generated
 .vercel
 .env*
 !.env.example
+bucket-backup
